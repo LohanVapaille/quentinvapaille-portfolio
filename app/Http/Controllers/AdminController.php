@@ -17,6 +17,11 @@ class AdminController extends Controller
         return view('admin.login');
     }
 
+    public function entry(Request $request)
+    {
+        return Auth::check() ? $this->index($request) : $this->loginForm();
+    }
+
     public function login(Request $request)
     {
         $credentials = $request->validate(['email' => ['required', 'email'], 'password' => ['required', 'string']]);
@@ -33,7 +38,7 @@ class AdminController extends Controller
         Auth::logout();
         $request->session()->invalidate();
         $request->session()->regenerateToken();
-        return redirect()->route('admin.login');
+        return redirect()->route('admin.index');
     }
 
     public function index(Request $request)
@@ -60,7 +65,7 @@ class AdminController extends Controller
             'alt_text' => ['nullable', 'string', 'max:255'], 'video_url' => ['nullable', 'url', 'max:2048'],
             'is_published' => ['nullable', 'boolean'], 'position' => ['nullable', 'integer', 'min:0'],
             'photo' => ['nullable', 'image', 'mimes:jpg,jpeg,png,webp', 'max:20480'],
-            'video' => ['nullable', 'mimes:mp4,webm', 'max:102400'], 'poster' => ['nullable', 'image', 'mimes:jpg,jpeg,png,webp', 'max:20480'],
+            'video' => ['nullable', 'mimes:mp4,webm', 'max:32768'], 'poster' => ['nullable', 'image', 'mimes:jpg,jpeg,png,webp', 'max:20480'],
         ]);
         $item ??= new MediaItem();
         $item->fill(collect($data)->except(['photo', 'video', 'poster'])->all());
@@ -70,6 +75,36 @@ class AdminController extends Controller
             if ($request->hasFile($input)) $item->addMediaFromRequest($input)->toMediaCollection($collection);
         }
         return redirect()->route('admin.index', ['section' => 'gallery'])->with('success', 'Le contenu a été enregistré.');
+    }
+
+    public function uploadFiles(Request $request)
+    {
+        $data = $request->validate([
+            'files' => ['required', 'array', 'min:1', 'max:20'],
+            'files.*' => ['required', 'file', 'mimes:jpg,jpeg,png,webp,mp4,webm', 'max:32768'],
+            'category_id' => ['nullable', 'exists:categories,id'],
+        ], [
+            'files.required' => 'Sélectionne au moins un fichier à importer.',
+            'files.*.mimes' => 'Seules les photos JPG, PNG, WebP et les vidéos MP4 ou WebM sont acceptées.',
+            'files.*.max' => 'Chaque fichier doit faire moins de 32 Mo.',
+        ]);
+
+        foreach ($data['files'] as $file) {
+            $extension = strtolower($file->getClientOriginalExtension());
+            $isPhoto = in_array($extension, ['jpg', 'jpeg', 'png', 'webp'], true);
+            $title = pathinfo($file->getClientOriginalName(), PATHINFO_FILENAME);
+            $item = MediaItem::create([
+                'title' => $title ?: 'Nouveau contenu',
+                'type' => $isPhoto ? 'photo' : 'video',
+                'category_id' => $data['category_id'] ?? null,
+                'is_published' => true,
+            ]);
+
+            $item->addMedia($file)->toMediaCollection($isPhoto ? 'photo' : 'video');
+        }
+
+        return redirect()->route('admin.index', ['section' => 'gallery'])
+            ->with('success', count($data['files']) . ' fichier(s) importé(s) et ajouté(s) à la galerie.');
     }
 
     public function deleteItem(MediaItem $item)

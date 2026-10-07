@@ -16,14 +16,14 @@ Route::get('/sitemap.xml', [PortfolioController::class, 'sitemap'])->name('sitem
 Route::get('/robots.txt', [PortfolioController::class, 'robots'])->name('robots');
 
 Route::prefix('admin')->name('admin.')->group(function () {
+    Route::get('/', [AdminController::class, 'entry'])->name('index');
     Route::middleware('guest')->group(function () {
-        Route::get('/login', [AdminController::class, 'loginForm'])->name('login');
-        Route::post('/login', [AdminController::class, 'login'])->name('login.store');
+        Route::post('/', [AdminController::class, 'login'])->name('login.store');
     });
     Route::middleware('auth')->group(function () {
-        Route::get('/', [AdminController::class, 'index'])->name('index');
         Route::post('/logout', [AdminController::class, 'logout'])->name('logout');
         Route::post('/items/{item?}', [AdminController::class, 'saveItem'])->name('items.save');
+        Route::post('/uploads', [AdminController::class, 'uploadFiles'])->name('uploads.store');
         Route::delete('/items/{item}', [AdminController::class, 'deleteItem'])->name('items.delete');
         Route::post('/categories/{category?}', [AdminController::class, 'saveCategory'])->name('categories.save');
         Route::delete('/categories/{category}', [AdminController::class, 'deleteCategory'])->name('categories.delete');

@@ -11,10 +11,14 @@
     @if ($isPhoto)
         <button type="button" @click="open = !open" class="group block w-full cursor-pointer overflow-hidden"
             aria-label="Afficher la démarche créative : {{ $item->title }}">
+            @if ($item->thumb_url)
             <img src="{{ $item->thumb_url }}" srcset="{{ $item->thumb_url }} 640w, {{ $item->large_url }} 1600w"
                 sizes="(min-width: 1024px) 33vw, (min-width: 640px) 50vw, 100vw" alt="{{ $item->display_alt }}"
                 width="{{ $w }}" height="{{ $h }}" loading="{{ $eager ? 'eager' : 'lazy' }}" decoding="async"
                 class="h-auto w-full transition duration-700 group-hover:scale-105">
+            @else
+                <div class="grid aspect-[4/3] place-items-center bg-peach text-sm font-semibold text-ink/55">Photo à ajouter</div>
+            @endif
         </button>
     @else
         <div class="relative aspect-video overflow-hidden bg-gradient-to-br from-sun/70 to-coral/60">

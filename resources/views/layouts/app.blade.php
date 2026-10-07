@@ -92,6 +92,7 @@
                     <li><a href="{{ $url }}" target="_blank" rel="noopener noreferrer me"
                             class="transition hover:text-coral">{{ $label }}</a></li>
                 @endforeach
+                <li><a href="{{ route('admin.index') }}" class="transition hover:text-coral">Administration</a></li>
             </ul>
         </div>
     </footer>

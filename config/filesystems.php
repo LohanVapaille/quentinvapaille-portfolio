@@ -41,7 +41,9 @@ return [
         'public' => [
             'driver' => 'local',
             'root' => storage_path('app/public'),
-            'url' => rtrim(env('APP_URL', 'http://localhost'), '/').'/storage',
+            // This project is served from its public directory under the WAMP
+            // document root, so media URLs need the project path as well.
+            'url' => '/quentinvapaille-portfolio/public/storage',
             'visibility' => 'public',
             'throw' => false,
             'report' => false,
